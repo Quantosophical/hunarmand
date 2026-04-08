@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+:root {
+  /* Core Palette - Vintage Royal Luxury Theme */
+  --gold: #C9A84C;
+  --gold-light: #E8C96A;
+  --gold-dark: #A07830;
+  --deep-black: #0A0A0A;
+  --rich-dark: #1A1612;
+  --surface-dark: #241E18;
+  --surface-mid: #2E2620;
+  --surface-warm: #3A3028;
+  --cream: #F5F0E8;
+  --cream-dark: #E8E0D0;
+  --beige-vintage: #D4C4A8;
+  --text-primary: #F5F0E8;
+  --text-secondary: #E8E0D0;
+  --text-muted: #B8A890;
+  --text-gold: #C9A84C;
+  --border-gold: rgba(201, 168, 76, 0.25);
+  --border-subtle: rgba(201, 168, 76, 0.08);
+
+  /* Shadows */
+  --shadow-gold: 0 0 40px rgba(201, 168, 76, 0.15);
+  --shadow-card: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.1);
+  --shadow-text: 0 0 30px rgba(201, 168, 76, 0.3);
+
+  /* Spacing rhythm */
+  --space-section: 8rem;
+  --radius-card: 2px;
+  --radius-btn: 1px;
+}
+
+@theme inline {
+  --color-primary: var(--deep-black);
+  --color-accent: var(--gold);
+  --color-background: #2A2218;
+  --color-surface: var(--surface-dark);
+  --color-muted: var(--text-muted);
+  --color-border: var(--border-gold);
+  --color-success: #16A34A;
+  --color-error: #DC2626;
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-jost);
+  --font-heading: var(--font-cormorant);
+  --font-accent: var(--font-cinzel);
+}
+
+body {
+  background: linear-gradient(180deg, #2A2218 0%, #1A1612 50%, #0A0A0A 100%);
+  color: #F5F0E8;
+}
+
+html { 
+  scroll-behavior: smooth; 
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0A0A0A; }
+::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 0; }
+
+/* The Grain Texture Overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* Gold shimmer animation */
+@keyframes goldShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-gold-shimmer {
+  background: linear-gradient(135deg, #C9A84C 0%, #E8C96A 30%, #C9A84C 50%, #A07830 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: goldShimmer 5s linear infinite;
+}
+
+.bg-gradient-gold {
+  background: linear-gradient(135deg, #C9A84C 0%, #E8C96A 50%, #A07830 100%);
+}
+
+.bg-gradient-card {
+  background: linear-gradient(145deg, #1A1612 0%, #241E18 100%);
+}

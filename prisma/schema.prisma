@@ -1,0 +1,219 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  role          String    @default("BUYER") // ARTISAN | BUYER | ADMIN
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  artisanProfile ArtisanProfile?
+  orders         Order[]
+  cart           Cart?
+  reviews        Review[]
+  sentMessages   Message[]      @relation("SentMessages")
+  notifications  Notification[]
+  addresses      Address[]
+  wishlist       Wishlist?
+}
+
+model ArtisanProfile {
+  id                 String   @id @default(cuid())
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String   @unique
+  craftType          String
+  village            String
+  district           String?
+  yearsExperience    Int      @default(0)
+  craftLineage       String?
+  bio                String?
+  profilePhoto       String?
+  videoUrl           String?
+  aadharEncrypted    String?
+  bankAccountEncrypted String?
+  bankIFSC           String?
+  verificationStatus String   @default("PENDING") // PENDING | VERIFIED | REJECTED
+  verificationNote   String?
+  isActive           Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  
+  products           Product[]
+  payoutRequests     PayoutRequest[]
+  featured           FeaturedArtisan?
+  conversations      Conversation[]
+}
+
+model Product {
+  id                    String   @id @default(cuid())
+  artisan               ArtisanProfile @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+  artisanId             String
+  title                 String
+  description           String
+  craftCategory         String
+  price                 Float
+  stock                 Int      @default(0)
+  images                String   // Store serialized JSON array of URLs
+  timeToMake            String?
+  materials             String?
+  isGITagged            Boolean  @default(false)
+  shippingWeight        Float    @default(0) // grams
+  internationalShipping Boolean  @default(false)
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  cartItems             CartItem[]
+  orderItems            OrderItem[]
+  reviews               Review[]
+  wishlistItems         WishlistItem[]
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+  items     CartItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartId    String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  quantity  Int      @default(1)
+}
+
+model Order {
+  id               String   @id @default(cuid())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String
+  address          Address  @relation(fields: [addressId], references: [id])
+  addressId        String
+  totalAmount      Float
+  paymentReference String?
+  status           String   @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  qrCode           String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  items            OrderItem[]
+  reviews          Review[]
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productId String
+  quantity  Int      @default(1)
+  price     Float    // Store price at time of purchase
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  name      String
+  street    String
+  city      String
+  state     String
+  pincode   String
+  phone     String
+  isDefault Boolean  @default(false)
+  
+  orders    Order[]
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  order     Order?   @relation(fields: [orderId], references: [id])
+  orderId   String?
+  rating    Int
+  text      String?
+  createdAt DateTime @default(now())
+}
+
+model Conversation {
+  id            String   @id @default(cuid())
+  buyerId       String
+  artisanId     String
+  artisan       ArtisanProfile @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+  messages      Message[]
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId       String
+  text           String
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+  items     WishlistItem[]
+}
+
+model WishlistItem {
+  id         String   @id @default(cuid())
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  wishlistId String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId  String
+}
+
+model PayoutRequest {
+  id               String         @id @default(cuid())
+  artisan          ArtisanProfile @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+  artisanId        String
+  amount           Float
+  status           String         @default("PENDING") // PENDING | APPROVED | PAID
+  transactionRef   String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model FeaturedArtisan {
+  id               String         @id @default(cuid())
+  artisan          ArtisanProfile @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+  artisanId        String         @unique
+  displayOrder     Int            @default(0)
+  active           Boolean        @default(true)
+}
