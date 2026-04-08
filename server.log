@@ -1,0 +1,44 @@
+
+> hunarmand@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.2 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.21.107.105:3000
+- Environments: .env
+✓ Ready in 1264ms
+
+prisma:info Starting a sqlite pool with 5 connections.
+prisma:query SELECT `main`.`User`.`id`, `main`.`User`.`name`, `main`.`User`.`email`, `main`.`User`.`emailVerified`, `main`.`User`.`image`, `main`.`User`.`passwordHash`, `main`.`User`.`role`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`email` = ? AND 1=1) LIMIT ? OFFSET ?
+prisma:query INSERT INTO `main`.`User` (`id`, `name`, `email`, `passwordHash`, `role`, `createdAt`, `updatedAt`) VALUES (?,?,?,?,?,?,?) RETURNING `id` AS `id`, `name` AS `name`, `email` AS `email`, `emailVerified` AS `emailVerified`, `image` AS `image`, `passwordHash` AS `passwordHash`, `role` AS `role`, `createdAt` AS `createdAt`, `updatedAt` AS `updatedAt`
+ POST /api/register 201 in 756ms (next.js: 453ms, application-code: 302ms)
+ POST /api/auth/callback/credentials 302 in 1357ms (next.js: 1308ms, application-code: 49ms)
+ GET /api/auth/signin?csrf=true 302 in 46ms (next.js: 18ms, application-code: 28ms)
+ GET /login?callbackUrl=http%3A%2F%2Flocalhost%3A3000 200 in 974ms (next.js: 275ms, application-code: 699ms)
+ POST /api/auth/callback/credentials 302 in 37ms (next.js: 16ms, application-code: 22ms)
+ GET /api/auth/signin?csrf=true 302 in 42ms (next.js: 5ms, application-code: 37ms)
+ GET /login?callbackUrl=http%3A%2F%2Flocalhost%3A3000 200 in 138ms (next.js: 5ms, application-code: 132ms)
+ GET /register 200 in 3.4s (next.js: 660ms, application-code: 2.8s)
+ GET /api/auth/session 200 in 1671ms (next.js: 586ms, application-code: 1085ms)
+prisma:query SELECT 1
+prisma:query SELECT `main`.`User`.`id`, `main`.`User`.`name`, `main`.`User`.`email`, `main`.`User`.`emailVerified`, `main`.`User`.`image`, `main`.`User`.`passwordHash`, `main`.`User`.`role`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`email` = ? AND 1=1) LIMIT ? OFFSET ?
+ POST /api/register 400 in 1129ms (next.js: 309ms, application-code: 820ms)
+prisma:query SELECT `main`.`User`.`id`, `main`.`User`.`name`, `main`.`User`.`email`, `main`.`User`.`emailVerified`, `main`.`User`.`image`, `main`.`User`.`passwordHash`, `main`.`User`.`role`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`email` = ? AND 1=1) LIMIT ? OFFSET ?
+prisma:query INSERT INTO `main`.`User` (`id`, `name`, `email`, `passwordHash`, `role`, `createdAt`, `updatedAt`) VALUES (?,?,?,?,?,?,?) RETURNING `id` AS `id`, `name` AS `name`, `email` AS `email`, `emailVerified` AS `emailVerified`, `image` AS `image`, `passwordHash` AS `passwordHash`, `role` AS `role`, `createdAt` AS `createdAt`, `updatedAt` AS `updatedAt`
+ POST /api/register 201 in 929ms (next.js: 47ms, application-code: 883ms)
+ GET /api/auth/providers 200 in 116ms (next.js: 91ms, application-code: 25ms)
+ GET /api/auth/csrf 200 in 75ms (next.js: 15ms, application-code: 60ms)
+prisma:query SELECT `main`.`User`.`id`, `main`.`User`.`name`, `main`.`User`.`email`, `main`.`User`.`emailVerified`, `main`.`User`.`image`, `main`.`User`.`passwordHash`, `main`.`User`.`role`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`email` = ? AND 1=1) LIMIT ? OFFSET ?
+ POST /api/auth/callback/credentials 200 in 762ms (next.js: 57ms, application-code: 705ms)
+ GET /api/auth/session 200 in 91ms (next.js: 34ms, application-code: 57ms)
+prisma:query SELECT 1
+prisma:query SELECT `main`.`User`.`id`, `main`.`User`.`name`, `main`.`User`.`email`, `main`.`User`.`emailVerified`, `main`.`User`.`image`, `main`.`User`.`passwordHash`, `main`.`User`.`role`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`id` = ? AND 1=1) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Order`.`id`, `main`.`Order`.`userId`, `main`.`Order`.`addressId`, `main`.`Order`.`totalAmount`, `main`.`Order`.`paymentReference`, `main`.`Order`.`status`, `main`.`Order`.`qrCode`, `main`.`Order`.`createdAt`, `main`.`Order`.`updatedAt` FROM `main`.`Order` WHERE `main`.`Order`.`userId` IN (?) LIMIT ? OFFSET ?
+ GET /account 200 in 3.5s (next.js: 1424ms, application-code: 2.1s)
+prisma:query SELECT `main`.`User`.`id`, `main`.`User`.`name`, `main`.`User`.`email`, `main`.`User`.`emailVerified`, `main`.`User`.`image`, `main`.`User`.`passwordHash`, `main`.`User`.`role`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`id` = ? AND 1=1) LIMIT ? OFFSET ?
+prisma:query SELECT `main`.`Order`.`id`, `main`.`Order`.`userId`, `main`.`Order`.`addressId`, `main`.`Order`.`totalAmount`, `main`.`Order`.`paymentReference`, `main`.`Order`.`status`, `main`.`Order`.`qrCode`, `main`.`Order`.`createdAt`, `main`.`Order`.`updatedAt` FROM `main`.`Order` WHERE `main`.`Order`.`userId` IN (?) LIMIT ? OFFSET ?
+ GET /account 200 in 1234ms (next.js: 84ms, application-code: 1150ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+ GET /api/auth/session 200 in 94ms (next.js: 50ms, application-code: 44ms)
+ GET /api/auth/session 200 in 162ms (next.js: 82ms, application-code: 80ms)
+ GET /join-as-artisan 200 in 1828ms (next.js: 1575ms, application-code: 253ms)
