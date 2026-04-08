@@ -1,12 +1,14 @@
 'use client';
 import Link from 'next/link';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, ChevronDown, LayoutDashboard, PlusCircle, IndianRupee, Settings, LogOut, ShoppingBasket } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useCart } from '@/lib/store/useCart';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const { data: session, status } = useSession();
   const { items, fetchCart } = useCart();
   
@@ -63,14 +65,68 @@ export function Navbar() {
           {status === 'loading' ? (
             <div className="hidden md:block w-16 h-4 bg-surface-mid animate-pulse rounded" />
           ) : session ? (
-            <>
-              <Link href={session.user.role === 'ARTISAN' ? '/dashboard' : '/account'} className="hidden md:block text-sm font-sans font-medium text-cream hover:text-accent transition-colors">
-                {session.user.role === 'ARTISAN' ? 'My Atelier' : 'My Account'}
+            <div 
+              className="relative"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+              <Link 
+                href={session.user.role === 'ARTISAN' ? '/dashboard' : '/account'} 
+                className="hidden md:flex items-center gap-2 text-sm font-sans font-medium text-cream hover:text-accent transition-colors py-2"
+              >
+                <span>{session.user.role === 'ARTISAN' ? 'My Atelier' : 'My Account'}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isHovered ? 'rotate-180' : ''}`} />
               </Link>
-              <button onClick={() => signOut({ callbackUrl: '/' })} className="hidden md:inline-flex px-4 py-2 text-text-muted hover:text-error text-xs font-sans tracking-widest uppercase transition-colors">
-                Sign Out
-              </button>
-            </>
+
+              <AnimatePresence>
+                {isHovered && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="absolute right-0 mt-1 w-64 bg-[#0A0A0A]/95 backdrop-blur-xl border border-accent/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-50 rounded-sm"
+                  >
+                    <div className="p-4 border-b border-accent/10 bg-accent/5">
+                      <p className="text-xs font-sans tracking-widest text-accent uppercase mb-1">Signed in as</p>
+                      <p className="text-sm font-heading text-cream truncate">{session.user.name}</p>
+                    </div>
+
+                    <div className="py-2">
+                      {(session.user.role === 'ARTISAN' ? [
+                        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+                        { label: 'Add Masterpiece', icon: PlusCircle, href: '/dashboard' },
+                        { label: 'My Collection', icon: ShoppingBasket, href: '/dashboard' },
+                        { label: 'Earnings', icon: IndianRupee, href: '/dashboard' },
+                      ] : [
+                        { label: 'My Orders', icon: ShoppingBasket, href: '/account' },
+                        { label: 'Wishlist', icon: ShoppingBag, href: '/account' },
+                        { label: 'Account Settings', icon: Settings, href: '/account' },
+                      ]).map((item) => (
+                        <Link 
+                          key={item.label}
+                          href={item.href}
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-sans text-text-muted hover:text-accent hover:bg-accent/5 transition-all group"
+                        >
+                          <item.icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                          <span className="tracking-wide">{item.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+
+                    <div className="border-t border-accent/10 pt-1 pb-1">
+                      <button 
+                        onClick={() => signOut({ callbackUrl: '/' })}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-sans text-text-muted hover:text-error hover:bg-error/5 transition-all group"
+                      >
+                        <LogOut className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        <span className="tracking-wide uppercase text-[10px] font-bold">Sign Out</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           ) : (
             <>
               <Link href="/login" className="hidden md:block text-sm font-sans font-medium text-cream hover:text-accent transition-colors">
