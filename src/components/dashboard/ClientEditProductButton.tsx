@@ -1,34 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "next/navigation";
 import { CldUploadWidget } from "next-cloudinary";
 
-export default function ClientAddProductButton() {
+// Minimal product type to avoid importing Prisma types in client component
+type ProductProp = {
+  id: string;
+  title: string;
+  description: string;
+  craftCategory: string;
+  price: number;
+  stock: number;
+  timeToMake: string | null;
+  materials: string | null;
+  shippingWeight: number;
+  images: string;
+}
+
+export default function ClientEditProductButton({ product }: { product: ProductProp }) {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    craftCategory: "Pashmina",
-    price: "",
-    stock: "1",
-    timeToMake: "",
-    materials: "",
-    shippingWeight: "500",
+    title: product.title,
+    description: product.description,
+    craftCategory: product.craftCategory,
+    price: product.price.toString(),
+    stock: product.stock.toString(),
+    timeToMake: product.timeToMake || "",
+    materials: product.materials || "",
+    shippingWeight: product.shippingWeight.toString(),
   });
 
   const [images, setImages] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      setImages(JSON.parse(product.images || "[]"));
+    } catch {
+      setImages([]);
+    }
+  }, [product.images]);
 
   const handleUpload = (result: any) => {
     if (result.info && result.info.secure_url) {
       setImages(prev => [...prev, result.info.secure_url]);
     }
   };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,8 +66,8 @@ export default function ClientAddProductButton() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/products", {
-        method: "POST",
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
@@ -53,15 +79,14 @@ export default function ClientAddProductButton() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to create artifact");
+        throw new Error("Failed to update artifact");
       }
 
       setIsOpen(false);
-      setImages([]); // clear state
       router.refresh();
     } catch (err) {
       console.error(err);
-      alert("Error adding artifact.");
+      alert("Error updating artifact.");
     } finally {
       setLoading(false);
     }
@@ -71,14 +96,14 @@ export default function ClientAddProductButton() {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="bg-gradient-gold text-primary font-accent text-[0.65rem] tracking-[0.2em] uppercase px-6 py-3 font-bold hover:brightness-110 transition-all flex items-center gap-2"
+        className="text-accent text-xs tracking-widest uppercase hover:underline"
       >
-        <span className="text-lg leading-none">+</span> Add Artifact
+        Edit
       </button>
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <div className="p-2 w-full">
-            <h2 className="text-2xl font-heading font-light italic text-cream mb-6 border-b border-border-gold/30 pb-4">New Masterpiece</h2>
+            <h2 className="text-2xl font-heading font-light italic text-cream mb-6 border-b border-border-gold/30 pb-4">Edit Masterpiece</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block font-accent text-[0.6rem] tracking-[0.2em] text-accent uppercase mb-1">Title</label>
@@ -130,13 +155,13 @@ export default function ClientAddProductButton() {
                 </div>
 
                 <div>
-                    <label className="block font-accent text-[0.6rem] tracking-[0.2em] text-accent uppercase mb-1 mt-2">Authentic Images (Required)</label>
+                    <label className="block font-accent text-[0.6rem] tracking-[0.2em] text-accent uppercase mb-1 mt-2">Authentic Images</label>
                     <CldUploadWidget uploadPreset="hunarmand_preset" onSuccess={handleUpload}>
                       {({ open }) => {
                         return (
                           <button type="button" onClick={() => open()} className="w-full border-2 border-dashed border-border-gold/30 hover:border-accent bg-surface-mid/10 text-text-muted py-6 rounded-lg flex flex-col items-center justify-center transition-colors">
                             <span className="text-xl mb-1 text-accent">+</span>
-                            <span className="font-sans text-xs tracking-widest uppercase">Select Media</span>
+                            <span className="font-sans text-xs tracking-widest uppercase">Add More Media</span>
                           </button>
                         );
                       }}
@@ -145,14 +170,17 @@ export default function ClientAddProductButton() {
                     {images.length > 0 && (
                       <div className="flex gap-4 mt-4 overflow-x-auto pb-2">
                         {images.map((url, i) => (
-                          <img key={i} src={url} alt={`Upload ${i}`} className="h-16 w-16 object-cover rounded-md border border-border-gold/30" />
+                          <div key={i} className="relative group shrink-0">
+                            <img src={url} alt={`Upload ${i}`} className="h-16 w-16 object-cover rounded-md border border-border-gold/30" />
+                            <button type="button" onClick={() => removeImage(i)} className="absolute -top-2 -right-2 bg-red-900 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                          </div>
                         ))}
                       </div>
                     )}
                 </div>
 
                 <button type="submit" disabled={loading} className="w-full bg-gradient-gold text-primary font-accent tracking-widest text-sm uppercase py-4 mt-6 font-bold hover:brightness-110 transition-all flex justify-center items-center">
-                    {loading ? <Spinner size="sm" className="text-primary"/> : "Submit Artifact"}
+                    {loading ? <Spinner size="sm" className="text-primary"/> : "Save Changes"}
                 </button>
             </form>
         </div>

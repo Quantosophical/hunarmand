@@ -3,6 +3,8 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import ClientAddProductButton from "@/components/dashboard/ClientAddProductButton";
+import ClientRequestPayoutButton from "@/components/dashboard/ClientRequestPayoutButton";
+import ClientEditProductButton from "@/components/dashboard/ClientEditProductButton";
 
 export default async function ArtisanDashboard() {
   const session = await getServerSession(authOptions);
@@ -19,6 +21,28 @@ export default async function ArtisanDashboard() {
   if (!profile) {
     return <div>Error loading profile</div>;
   }
+
+  const orderItems = await prisma.orderItem.findMany({
+    where: { product: { artisanId: profile.id } },
+    include: { order: true }
+  });
+
+  const totalEarnings = orderItems
+    .filter(item => item.order.status !== "CANCELLED")
+    .reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  const totalWithdrawn = profile.payoutRequests
+    .filter(req => req.status === "PAID")
+    .reduce((sum, req) => sum + req.amount, 0);
+
+  const pendingRequested = profile.payoutRequests
+    .filter(req => req.status === "PENDING" || req.status === "APPROVED")
+    .reduce((sum, req) => sum + req.amount, 0);
+
+  const availableBalance = totalEarnings - totalWithdrawn - pendingRequested;
+
+  const pendingCommissionsCount = orderItems
+    .filter(item => ["PENDING", "PROCESSING"].includes(item.order.status)).length;
 
   return (
     <div className="bg-deep-black min-h-screen text-cream py-24">
@@ -50,15 +74,53 @@ export default async function ArtisanDashboard() {
               <p className="font-sans text-xs tracking-widest text-text-muted uppercase mb-4">Total Artifacts</p>
               <p className="font-heading text-5xl text-cream">{profile.products.length}</p>
            </div>
-           <div className="bg-surface-dark border border-border-gold/10 rounded-xl p-8 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-              <p className="font-sans text-xs tracking-widest text-text-muted uppercase mb-4">Patronage (Earnings)</p>
-              <p className="font-heading text-5xl text-accent">₹0</p>
+           <div className="bg-surface-dark border border-border-gold/10 rounded-xl p-8 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col justify-between">
+              <div>
+                <p className="font-sans text-xs tracking-widest text-text-muted uppercase mb-4">Available Balance</p>
+                <p className="font-heading text-5xl text-accent">₹{availableBalance.toLocaleString('en-IN')}</p>
+              </div>
+              <div className="mt-6">
+                <ClientRequestPayoutButton availableBalance={availableBalance} hasPending={pendingRequested > 0} />
+              </div>
            </div>
            <div className="bg-surface-dark border border-border-gold/10 rounded-xl p-8 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
               <p className="font-sans text-xs tracking-widest text-text-muted uppercase mb-4">Pending Commissions</p>
-              <p className="font-heading text-5xl text-cream">0</p>
+              <p className="font-heading text-5xl text-cream">{pendingCommissionsCount}</p>
            </div>
         </div>
+
+        {profile.payoutRequests.length > 0 && (
+          <div className="mb-16">
+            <h2 className="text-xl font-heading text-cream mb-6">Payout History</h2>
+            <div className="bg-surface-dark border border-border-gold/10 rounded-xl overflow-x-auto shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+               <table className="w-full text-left font-sans whitespace-nowrap min-w-[700px]">
+                  <thead className="bg-surface-mid/30 border-b border-border-gold/10">
+                     <tr>
+                        <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium">Date</th>
+                        <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium">Amount</th>
+                        <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium">Status</th>
+                        <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium">Reference</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     {profile.payoutRequests.map(req => (
+                       <tr key={req.id} className="border-b border-border-gold/5 hover:bg-surface-mid/20 transition-colors">
+                         <td className="p-6 text-sm text-text-muted">{req.createdAt.toLocaleDateString()}</td>
+                         <td className="p-6 font-heading text-lg text-cream">₹{req.amount.toLocaleString('en-IN')}</td>
+                         <td className="p-6">
+                           <span className={`text-xs tracking-widest uppercase border rounded-md px-3 py-1 flex items-center gap-2 w-max ${req.status === 'PAID' ? 'text-accent border-accent/30' : 'text-text-muted border-border-gold/10'}`}>
+                             {req.status === 'PAID' && <span className="w-1.5 h-1.5 bg-accent rounded-full inline-block"/>}
+                             {req.status}
+                           </span>
+                         </td>
+                         <td className="p-6 text-sm text-text-muted">{req.transactionRef || '-'}</td>
+                       </tr>
+                     ))}
+                  </tbody>
+               </table>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row justify-between items-start md:items-center mb-8 gap-4">
            <h2 className="text-xl font-heading text-cream">Your Masterpieces</h2>
@@ -75,6 +137,7 @@ export default async function ArtisanDashboard() {
                     <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium">Value</th>
                     <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium">In Atelier</th>
                     <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium">Status</th>
+                    <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium text-right">Actions</th>
                  </tr>
               </thead>
               <tbody>
@@ -103,11 +166,14 @@ export default async function ArtisanDashboard() {
                            <span className="text-text-muted text-xs tracking-widest uppercase border border-border-gold/10 rounded-md px-3 py-1 w-max">In Progress</span>
                          }
                        </td>
+                       <td className="p-6 text-right">
+                         <ClientEditProductButton product={p} />
+                       </td>
                      </tr>
                    )
                  }) : (
                    <tr>
-                     <td colSpan={6} className="p-16 text-center">
+                     <td colSpan={7} className="p-16 text-center">
                        <p className="font-heading text-xl text-cream mb-2">The atelier is empty.</p>
                        <p className="font-sans text-xs text-text-muted tracking-wide">It is time to create your first masterpiece.</p>
                      </td>
