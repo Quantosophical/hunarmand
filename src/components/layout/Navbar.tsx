@@ -42,7 +42,7 @@ export function Navbar() {
             <span className="font-accent text-2xl font-bold tracking-[0.25em] text-transparent bg-clip-text bg-gradient-gold group-hover:animate-gold-shimmer">
               HUNARMAND
             </span>
-            <span className="font-sans text-[0.6rem] text-text-muted mt-0.5 tracking-widest">
+            <span className="font-sans text-[0.6rem] text-transparent bg-clip-text bg-gradient-gold group-hover:animate-gold-shimmer mt-0.5 tracking-widest font-medium">
               حنرمند
             </span>
           </Link>

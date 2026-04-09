@@ -87,7 +87,7 @@ body::before {
 }
 
 .bg-gradient-gold {
-  background: linear-gradient(135deg, #C9A84C 0%, #E8C96A 50%, #A07830 100%);
+  background-image: linear-gradient(135deg, #C9A84C 0%, #E8C96A 50%, #A07830 100%);
 }
 
 .bg-gradient-card {
