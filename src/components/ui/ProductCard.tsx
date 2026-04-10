@@ -1,4 +1,6 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Heart, Lock } from 'lucide-react';
 
@@ -18,9 +20,12 @@ interface ProductCardProps {
       verificationStatus: string;
     };
   };
+  initialIsWishlisted?: boolean;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, initialIsWishlisted = false }: ProductCardProps) {
+  const [isWishlisted, setIsWishlisted] = useState(initialIsWishlisted);
+  
   let mainImage = "";
   try {
     const images = JSON.parse(product.images);
@@ -85,8 +90,28 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
         
         {/* Wishlist Icon */}
-        <button className="absolute right-5 bottom-5 text-text-muted hover:text-accent transition-colors z-20" aria-label="Add to wishlist">
-          <Heart className="w-5 h-5 hover:fill-accent transition-all duration-300 active:scale-95" />
+        <button 
+          onClick={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+              setIsWishlisted(!isWishlisted);
+              const res = await fetch('/api/wishlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: product.id })
+              });
+              const data = await res.json();
+              if (data.status === 'added') setIsWishlisted(true);
+              if (data.status === 'removed') setIsWishlisted(false);
+            } catch (err) {
+              setIsWishlisted(!isWishlisted); // revert
+            }
+          }}
+          className="absolute right-5 bottom-5 text-text-muted transition-colors z-20 group-hover:block" 
+          aria-label="Add to wishlist"
+        >
+          <Heart className={`w-5 h-5 transition-all duration-300 active:scale-95 ${isWishlisted ? 'fill-accent text-accent' : 'hover:fill-accent hover:text-accent'}`} />
         </button>
       </div>
 

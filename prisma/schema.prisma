@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   name          String?
   email         String?   @unique
   emailVerified DateTime?
@@ -29,9 +29,9 @@ model User {
 }
 
 model ArtisanProfile {
-  id                 String   @id @default(cuid())
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId             String   @unique
+  userId             String   @unique @db.ObjectId
   craftType          String
   village            String
   district           String?
@@ -40,9 +40,13 @@ model ArtisanProfile {
   bio                String?
   profilePhoto       String?
   videoUrl           String?
+  signatureVideoUrl  String?
   aadharEncrypted    String?
   bankAccountEncrypted String?
   bankIFSC           String?
+  pehchanId          String?
+  isPehchanVerified  Boolean  @default(false)
+  awards             String[]
   verificationStatus String   @default("PENDING") // PENDING | VERIFIED | REJECTED
   verificationNote   String?
   isActive           Boolean  @default(false)
@@ -55,9 +59,9 @@ model ArtisanProfile {
 }
 
 model Product {
-  id                    String   @id @default(cuid())
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
   artisan               ArtisanProfile @relation(fields: [artisanId], references: [id], onDelete: Cascade)
-  artisanId             String
+  artisanId             String   @db.ObjectId
   title                 String
   description           String
   craftCategory         String
@@ -70,6 +74,8 @@ model Product {
   shippingWeight        Float    @default(0) // grams
   internationalShipping Boolean  @default(false)
   isActive              Boolean  @default(true)
+  materialBatchId       String?
+  gpsCoordinates        String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   
@@ -80,32 +86,33 @@ model Product {
 }
 
 model Cart {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String   @unique
+  userId    String   @unique @db.ObjectId
   items     CartItem[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model CartItem {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  cartId    String
+  cartId    String   @db.ObjectId
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId String
+  productId String   @db.ObjectId
   quantity  Int      @default(1)
 }
 
 model Order {
-  id               String   @id @default(cuid())
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId           String
+  userId           String   @db.ObjectId
   address          Address  @relation(fields: [addressId], references: [id])
-  addressId        String
+  addressId        String   @db.ObjectId
   totalAmount      Float
   paymentReference String?
   status           String   @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  trackingNumber   String?
   qrCode           String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -115,19 +122,19 @@ model Order {
 }
 
 model OrderItem {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId   String
+  orderId   String   @db.ObjectId
   product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
-  productId String
+  productId String   @db.ObjectId
   quantity  Int      @default(1)
   price     Float    // Store price at time of purchase
 }
 
 model Address {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
+  userId    String   @db.ObjectId
   name      String
   street    String
   city      String
@@ -140,22 +147,22 @@ model Address {
 }
 
 model Review {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId String
+  productId String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
+  userId    String   @db.ObjectId
   order     Order?   @relation(fields: [orderId], references: [id])
-  orderId   String?
+  orderId   String?  @db.ObjectId
   rating    Int
   text      String?
   createdAt DateTime @default(now())
 }
 
 model Conversation {
-  id            String   @id @default(cuid())
-  buyerId       String
-  artisanId     String
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  buyerId       String   @db.ObjectId
+  artisanId     String   @db.ObjectId
   artisan       ArtisanProfile @relation(fields: [artisanId], references: [id], onDelete: Cascade)
   messages      Message[]
   updatedAt     DateTime @updatedAt
@@ -163,20 +170,21 @@ model Conversation {
 }
 
 model Message {
-  id             String       @id @default(cuid())
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  conversationId String
+  conversationId String       @db.ObjectId
   sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  senderId       String
+  senderId       String       @db.ObjectId
   text           String
+  translatedText String?
   isRead         Boolean      @default(false)
   createdAt      DateTime     @default(now())
 }
 
 model Notification {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
+  userId    String   @db.ObjectId
   title     String
   message   String
   isRead    Boolean  @default(false)
@@ -185,24 +193,24 @@ model Notification {
 }
 
 model Wishlist {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String   @unique
+  userId    String   @unique @db.ObjectId
   items     WishlistItem[]
 }
 
 model WishlistItem {
-  id         String   @id @default(cuid())
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
   wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
-  wishlistId String
+  wishlistId String   @db.ObjectId
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId  String
+  productId  String   @db.ObjectId
 }
 
 model PayoutRequest {
-  id               String         @id @default(cuid())
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
   artisan          ArtisanProfile @relation(fields: [artisanId], references: [id], onDelete: Cascade)
-  artisanId        String
+  artisanId        String         @db.ObjectId
   amount           Float
   status           String         @default("PENDING") // PENDING | APPROVED | PAID
   transactionRef   String?
@@ -211,9 +219,17 @@ model PayoutRequest {
 }
 
 model FeaturedArtisan {
-  id               String         @id @default(cuid())
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
   artisan          ArtisanProfile @relation(fields: [artisanId], references: [id], onDelete: Cascade)
-  artisanId        String         @unique
+  artisanId        String         @unique @db.ObjectId
   displayOrder     Int            @default(0)
   active           Boolean        @default(true)
+}
+
+model PasswordResetToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }

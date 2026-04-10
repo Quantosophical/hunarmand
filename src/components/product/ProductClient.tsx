@@ -2,8 +2,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { AddToCartButton } from '@/components/ui/AddToCartButton';
+import ArtisanProfileBlock from '@/components/artisan/ArtisanProfileBlock';
+import CostBreakdownWidget from '@/components/product/CostBreakdownWidget';
+import PortalViewer from '@/components/product/PortalViewer';
+import D2AChat from '@/components/chat/D2AChat';
+import LoomCamTimeline from '@/components/product/LoomCamTimeline';
 
-export default function ProductClient({ product }: { product: any }) {
+export default function ProductClient({ product, currentUserId }: { product: any, currentUserId?: string }) {
   const images = JSON.parse(product.images || "[]");
   const mainImage = Array.isArray(images) && images.length > 0 ? images[0] : "";
   const [activeImage, setActiveImage] = useState(mainImage);
@@ -103,6 +108,12 @@ export default function ProductClient({ product }: { product: any }) {
               </div>
             </div>
 
+            {/* Feature 3: Portal to Kashmir (AR) */}
+            <PortalViewer />
+
+            {/* Feature 2: Biometric Payout Transparency */}
+            <CostBreakdownWidget price={product.price} />
+
             {/* Actions */}
             <div className="flex flex-col gap-4 mb-12">
               <AddToCartButton productId={product.id} className="w-full py-4 border border-accent bg-transparent hover:bg-accent/10 transition-colors font-accent tracking-widest text-accent text-sm" />
@@ -145,17 +156,8 @@ export default function ProductClient({ product }: { product: any }) {
                   </div>
                 )}
                 {activeTab === 'maker' && (
-                  <div className="flex flex-col sm:flex-row gap-6 items-start">
-                    <div className="w-24 h-24 shrink-0 rounded-full overflow-hidden border border-border-gold p-1">
-                      <img src={artisanProfilePhoto} alt={product.artisan.user.name} className="w-full h-full object-cover rounded-full grayscale hover:grayscale-0 transition-all duration-500" />
-                    </div>
-                    <div>
-                      <h4 className="font-heading text-2xl text-cream mb-2">{product.artisan.user.name}</h4>
-                      <p className="text-sm tracking-wide mb-4">From {product.artisan.village}</p>
-                      <Link href={`/artisan/${product.artisan.id}`} className="font-accent text-[0.65rem] tracking-widest text-accent uppercase border-b border-accent pb-1">
-                        Discover the Atelier
-                      </Link>
-                    </div>
+                  <div className="pt-2">
+                    <ArtisanProfileBlock artisan={product.artisan} />
                   </div>
                 )}
                 {activeTab === 'shipping' && (
@@ -174,6 +176,18 @@ export default function ProductClient({ product }: { product: any }) {
           </div>
         </div>
       </div>
+
+      {/* Feature 5: Loom-Cam Time-Lapse Proof of Work */}
+      <div className="container mx-auto px-6">
+        <LoomCamTimeline product={product} />
+      </div>
+      
+      {/* Feature 4: D2A Translation Chat Overlay */}
+      <D2AChat 
+        artisanId={product.artisan.id} 
+        artisanName={product.artisan.user.name} 
+        currentUserId={currentUserId} 
+      />
     </div>
   );
 }

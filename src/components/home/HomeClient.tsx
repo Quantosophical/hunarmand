@@ -45,7 +45,7 @@ function StatItem({ number, label }: { number: number | string, label: string })
   );
 }
 
-export default function HomeClient({ trendingProducts }: { trendingProducts: any[] }) {
+export default function HomeClient({ trendingProducts, wishlistedProductIds = [] }: { trendingProducts: any[], wishlistedProductIds?: string[] }) {
   return (
     <main className="flex-1 overflow-hidden selection:bg-accent/30" style={{ background: 'linear-gradient(180deg, #2A2218 0%, #1A1612 50%, #0A0A0A 100%)' }}>
 
@@ -167,7 +167,7 @@ export default function HomeClient({ trendingProducts }: { trendingProducts: any
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {trendingProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} initialIsWishlisted={wishlistedProductIds.includes(product.id)} />
               ))}
             </div>
           </div>
@@ -230,6 +230,50 @@ export default function HomeClient({ trendingProducts }: { trendingProducts: any
             <StatItem number="60+" label="Craft Categories" />
             <StatItem number="₹0" label="Middlemen Involved" />
             <StatItem number="100%" label="Directly from Maker" />
+          </div>
+        </div>
+      </section>
+
+      {/* 6. FOUNDERS SECTION */}
+      <section className="py-32 px-6 bg-[#2A2218] relative overflow-hidden">
+        <div className="absolute inset-0 bg-chinar-pattern opacity-[0.03] mix-blend-screen pointer-events-none" />
+        
+        <div className="container mx-auto max-w-5xl relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="font-accent text-[#C9A84C] tracking-[0.3em] uppercase text-sm mb-4">The Visionaries</h2>
+            <div className="w-20 h-[1px] bg-[#C9A84C] mx-auto mb-6" />
+            <h3 className="font-heading italic text-[#F5F0E8] text-3xl md:text-4xl font-light mb-6">Built for Kashmir, by Kashmir.</h3>
+            <p className="font-sans text-[#D4C4A8] max-w-2xl mx-auto leading-relaxed">
+              Hunarmand was forged with a singular mission: to resurrect the dignity of the artisan and eliminate the exploitative middlemen that have plagued our heritage for generations.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
+            {/* Sahil */}
+            <div className="flex flex-col items-center text-center p-8 bg-[#1A1612] border border-[rgba(201,168,76,0.1)] rounded-[var(--radius-card)] hover:border-[#C9A84C]/40 transition-colors group">
+              <div className="w-24 h-24 rounded-full bg-[#2A2218] border-2 border-[#C9A84C]/30 flex items-center justify-center mb-6 overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                <span className="font-heading text-4xl text-[#C9A84C]">S</span>
+              </div>
+              <h4 className="font-heading text-2xl text-[#F5F0E8] mb-1">Sahil Mehraj</h4>
+              <p className="font-accent tracking-[0.2em] text-[#C9A84C] text-[0.65rem] uppercase mb-4">Co-Founder</p>
+              <div className="w-12 h-[1px] bg-[#C9A84C]/30 mb-4" />
+              <p className="font-sans text-sm text-[#B8A890] leading-relaxed">
+                The technical master behind the platform, architecting the digital infrastructure and codebase that brings centuries-old craftsmanship to the modern world.
+              </p>
+            </div>
+
+            {/* Kafeel */}
+            <div className="flex flex-col items-center text-center p-8 bg-[#1A1612] border border-[rgba(201,168,76,0.1)] rounded-[var(--radius-card)] hover:border-[#C9A84C]/40 transition-colors group">
+              <div className="w-24 h-24 rounded-full bg-[#2A2218] border-2 border-[#C9A84C]/30 flex items-center justify-center mb-6 overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                <span className="font-heading text-4xl text-[#C9A84C]">A</span>
+              </div>
+              <h4 className="font-heading text-2xl text-[#F5F0E8] mb-1">Abdul Kafeel</h4>
+              <p className="font-accent tracking-[0.2em] text-[#C9A84C] text-[0.65rem] uppercase mb-4">Co-Founder</p>
+              <div className="w-12 h-[1px] bg-[#C9A84C]/30 mb-4" />
+              <p className="font-sans text-sm text-[#B8A890] leading-relaxed">
+                The business brain driving operations, growth, and the broader vision—while still occasionally vibecoding to keep the digital momentum alive.
+              </p>
+            </div>
           </div>
         </div>
       </section>

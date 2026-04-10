@@ -5,12 +5,19 @@ import prisma from "@/lib/prisma";
 import ClientAddProductButton from "@/components/dashboard/ClientAddProductButton";
 import ClientRequestPayoutButton from "@/components/dashboard/ClientRequestPayoutButton";
 import ClientEditProductButton from "@/components/dashboard/ClientEditProductButton";
+import ClientFulfillOrderButton from "@/components/dashboard/ClientFulfillOrderButton";
 
 export default async function ArtisanDashboard() {
   const session = await getServerSession(authOptions);
 
   if (!session || session.user.role !== "ARTISAN") {
     redirect("/login");
+  }
+
+  // Prevent Prisma crash if legacy SQLite CUID is in session cookie
+  const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(session.user.id);
+  if (!isValidObjectId) {
+    redirect("/api/auth/signout"); // Force them to clear old cookie
   }
 
   const profile = await prisma.artisanProfile.findUnique({
@@ -121,6 +128,46 @@ export default async function ArtisanDashboard() {
             </div>
           </div>
         )}
+
+         <div className="flex flex-col sm:flex-row justify-between items-start md:items-center mb-8 gap-4">
+           <h2 className="text-xl font-heading text-cream">Pending Fulfillments</h2>
+         </div>
+
+         <div className="bg-surface-dark border border-border-gold/10 rounded-xl overflow-x-auto shadow-[0_10px_30px_rgba(0,0,0,0.5)] mb-16">
+            <table className="w-full text-left font-sans whitespace-nowrap min-w-[700px]">
+               <thead className="bg-surface-mid/30 border-b border-border-gold/10">
+                  <tr>
+                     <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium">Order Date</th>
+                     <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium">Artifact</th>
+                     <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium">Qty</th>
+                     <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium">Earned</th>
+                     <th className="p-6 text-xs tracking-widest uppercase text-text-muted font-medium text-right">Status</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  {orderItems.filter(item => ["PENDING", "PROCESSING"].includes(item.order.status)).length > 0 ? (
+                    orderItems.filter(item => ["PENDING", "PROCESSING"].includes(item.order.status)).map(item => (
+                      <tr key={item.id} className="border-b border-border-gold/5 hover:bg-surface-mid/20 transition-colors">
+                        <td className="p-6 text-sm text-text-muted">{item.order.createdAt.toLocaleDateString()}</td>
+                        <td className="p-6 font-heading text-lg text-cream">{profile.products.find(p => p.id === item.productId)?.title}</td>
+                        <td className="p-6 text-sm text-text-muted">{item.quantity}</td>
+                        <td className="p-6 font-heading text-lg text-accent">₹{(item.price * item.quantity).toLocaleString('en-IN')}</td>
+                        <td className="p-6 text-right">
+                          <ClientFulfillOrderButton orderItemId={item.id} />
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="p-10 text-center">
+                        <p className="font-heading text-lg text-cream mb-1">No pending orders.</p>
+                        <p className="font-sans text-xs text-text-muted tracking-wide">All your sales have been fulfilled.</p>
+                      </td>
+                    </tr>
+                  )}
+               </tbody>
+            </table>
+         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start md:items-center mb-8 gap-4">
            <h2 className="text-xl font-heading text-cream">Your Masterpieces</h2>

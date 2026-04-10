@@ -38,8 +38,7 @@ export default function CertClient({ order, product, artisan, provenanceHash }: 
             <p className="font-sans text-xs tracking-widest text-text-muted uppercase pt-4">an original, handcrafted creation</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center sm:text-left border-t border-b border-border-gold/20 py-10 mb-16">
-            
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center sm:text-left border-t border-b border-border-gold/20 py-10 mb-8">
             <div className="px-2">
               <p className="font-sans text-[0.6rem] uppercase tracking-widest text-text-muted mb-2">Master Artisan</p>
               <p className="font-heading text-xl text-cream mb-1">{artisan.user.name}</p>
@@ -64,6 +63,17 @@ export default function CertClient({ order, product, artisan, provenanceHash }: 
                   0x{hash.slice(0, 16)}...
                 </p>
               </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-center sm:text-left py-4 mb-16">
+            <div className="px-2">
+               <p className="font-sans text-[0.6rem] uppercase tracking-widest text-text-muted mb-2">Loom GPS Coordinates</p>
+               <p className="font-mono text-sm text-cream">{product.gpsCoordinates || "34.0837° N, 74.7973° E (Srinagar)"}</p>
+            </div>
+            <div className="px-2">
+               <p className="font-sans text-[0.6rem] uppercase tracking-widest text-text-muted mb-2">Material Batch Proof</p>
+               <p className="font-mono text-sm text-cream">{product.materialBatchId || "BATCH-99A-RAW"}</p>
             </div>
           </div>
 

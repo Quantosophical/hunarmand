@@ -3,12 +3,19 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
+import DownloadInvoiceButton from "@/components/pdf/DownloadInvoiceButton";
 
 export default async function BuyerDashboard() {
   const session = await getServerSession(authOptions);
 
   if (!session) {
     redirect("/login");
+  }
+
+  // Prevent Prisma crash if legacy SQLite CUID is in session cookie
+  const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(session.user.id);
+  if (!isValidObjectId) {
+    redirect("/api/auth/signout");
   }
 
   const user = await prisma.user.findUnique({
@@ -60,11 +67,18 @@ export default async function BuyerDashboard() {
                             ))}
                          </div>
                        </div>
-                       <div className="text-left md:text-right w-full md:w-auto">
-                         <p className="font-heading text-2xl text-cream mb-4">₹{order.totalAmount.toLocaleString('en-IN')}</p>
+                       <div className="text-left md:text-right w-full md:w-auto space-y-3">
+                         <p className="font-heading text-2xl text-cream mb-2">₹{order.totalAmount.toLocaleString('en-IN')}</p>
+                         <p className="font-sans text-xs text-text-muted mb-4">Status: {order.status}</p>
+                         {order.status === "SHIPPED" && order.trackingNumber && (
+                           <p className="font-sans text-[0.65rem] tracking-widest text-accent uppercase mb-4">Tracking: {order.trackingNumber}</p>
+                         )}
                          <Link href={`/verify/${order.id}`} className="block text-center border rounded-md border-border-gold/30 text-accent px-6 py-2.5 font-sans tracking-widest text-xs uppercase hover:bg-gradient-gold hover:text-primary transition-all">
                            View Authenticity
                          </Link>
+                         <div className="flex justify-center md:justify-end">
+                           <DownloadInvoiceButton order={order} profile={user} />
+                         </div>
                        </div>
                      </div>
                    ))}

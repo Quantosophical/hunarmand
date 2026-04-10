@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import prisma from "@/lib/prisma";
 import ProductCard from '@/components/ui/ProductCard';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export default async function BrowsePage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
   const params = await searchParams;
@@ -10,7 +12,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: Promi
 
   const products = await prisma.product.findMany({
     where: {
-      isActive: true,
+      isActive: true, // Only show exhibited items
       ...(category ? { craftCategory: category } : {}),
       ...(q ? {
         title: {
@@ -22,6 +24,17 @@ export default async function BrowsePage({ searchParams }: { searchParams: Promi
     include: { artisan: { include: { user: true } } },
     orderBy: { createdAt: 'desc' }
   });
+
+  const session = await getServerSession(authOptions);
+  let userWishlistObject = null;
+  if (session) {
+    userWishlistObject = await prisma.wishlist.findUnique({
+      where: { userId: session.user.id },
+      include: { items: true }
+    });
+  }
+  const wishlistedProductIds = new Set(userWishlistObject?.items?.map(i => i.productId) || []);
+
 
   return (
     <div className="bg-deep-black min-h-screen text-cream pt-32 pb-24">
@@ -109,7 +122,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: Promi
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 md:gap-6 lg:gap-8">
               {products.length > 0 ? products.map((product: any, i: number) => (
                 <div key={product.id} className="animate-in fade-in slide-in-from-bottom-[30px] duration-700 ease-out fill-mode-both" style={{ animationDelay: `${i * 100}ms` }}>
-                  <ProductCard product={product} />
+                  <ProductCard product={product} initialIsWishlisted={wishlistedProductIds.has(product.id)} />
                 </div>
               )) : (
                 <div className="col-span-full py-32 flex flex-col items-center justify-center border border-border-subtle bg-surface-mid text-center px-4">
